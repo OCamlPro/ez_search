@@ -42,11 +42,13 @@ module EzSearch : sig
   (** [index_directory ~db_dir DIRECTORY] index all files in
      [DIRECTORY], and store the index in [db_dir]. Every top-directory
      in DIRECTORY is considered as a [file_entry] name, and
-     [file_name] are within top-directories.  *)
+     [file_name] are relative paths within top-directories.  *)
   val index_directory : db_dir:string -> string -> unit
 
-  (** [load_db ~db_dir] loads the database in memory. Note: in the
-     next version, we should aim at using mmap.  *)
+  (** [load_db ~db_dir ?use_mapfile ()] loads the database in memory.
+     [use_mapfile] controls whether to use a memory-mapped file or
+     load it normally. Memory-mapped files are normally more
+     efficient, but support may be more unstable. *)
   val load_db : db_dir:string -> ?use_mapfile:bool -> unit -> db
 
   (** [count_lines_total ~db] counts the number of '\n' in the
