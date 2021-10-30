@@ -75,7 +75,7 @@ module EzSearch = struct
     index
 
 
-  let index_directory ~db_dir dir =
+  let index_directory ~db_dir ~select dir =
 
     let plain_file = db_dir // "sources.text" in
     let plain_oc = open_out_bin plain_file in
@@ -85,7 +85,8 @@ module EzSearch = struct
 
     Unix.chdir dir;
     let files = Sys.readdir "." in
-    let pos = ref 8 in
+    (* file_pos origin is offsetted by 8 bytes *)
+    let pos = ref 0 in
     Array.iter (fun file_entry ->
 
         let index_file path =
@@ -107,12 +108,8 @@ module EzSearch = struct
 
         EzFile.make_select EzFile.iter_dir ~deep:true
           ~f:(fun path ->
-              let basename = Filename.basename path in
-              let _, ext = EzString.rcut_at basename '.' in
-              match ext with
-              | "ml" | "mll" | "mly" | "mli" ->
-                  index_file path
-              | _ -> ()
+              if select path then
+                index_file path
             ) file_entry
       ) files;
     output_bytes plain_oc ( Bytes.create 8 );
@@ -299,6 +296,10 @@ module EzSearch = struct
       next_lines
     }
 
+  let file_content ~db file =
+    String.sub db.db_text file.file_pos file.file_length
+
+  let files ~db = db.db_index
 
 (*
 let test s occ_pos =

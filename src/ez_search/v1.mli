@@ -12,6 +12,11 @@
 
 module EzSearch : sig
 
+  (** This module implements full-text search with regexps in a set of
+     files.  Two steps are required: in the first step, a database is
+     generated from all the files; in the second step, searches are
+     performed in the database.  *)
+
   module TYPES : sig
 
     type db
@@ -39,11 +44,14 @@ module EzSearch : sig
 
   open TYPES
 
-  (** [index_directory ~db_dir DIRECTORY] index all files in
+  (** [index_directory ~db_dir ~select DIRECTORY] index all files in
      [DIRECTORY], and store the index in [db_dir]. Every top-directory
      in DIRECTORY is considered as a [file_entry] name, and
-     [file_name] are relative paths within top-directories.  *)
-  val index_directory : db_dir:string -> string -> unit
+     [file_name] are relative paths within top-directories.  [select]
+     takes a path in argument and returns [true] if the content of the
+     path should be indexed.  *)
+  val index_directory :
+    db_dir:string -> select:( string -> bool ) -> string -> unit
 
   (** [load_db ~db_dir ?use_mapfile ()] loads the database in memory.
      [use_mapfile] controls whether to use a memory-mapped file or
@@ -76,6 +84,13 @@ module EzSearch : sig
      returned before and after the occurrence. *)
   val occurrence_context :
     db:db -> line:int -> occurrence -> max:int -> context
+
+  (** [file_content ~db file] returns the content of the file, as
+     retrieved from the database. *)
+  val file_content : db:db -> file -> string
+
+  (** [files ~db] returns all the files stored in the database. *)
+  val files : db:db -> file array
 
   (** [time msg f x] prints the time spent executing [f x]. *)
   val time : string -> ('a -> 'b) -> 'a -> 'b
