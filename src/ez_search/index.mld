@@ -1,0 +1,9 @@
+{1 Library ez_search}
+
+This is the description
+of the ez_search OCaml project
+
+
+
+The entry point of this library is the module: {!Ez_search}.
+
