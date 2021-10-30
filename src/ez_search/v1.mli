@@ -47,7 +47,7 @@ module EzSearch : sig
 
   (** [load_db ~db_dir] loads the database in memory. Note: in the
      next version, we should aim at using mmap.  *)
-  val load_db : db_dir:string -> db
+  val load_db : db_dir:string -> ?use_mapfile:bool -> unit -> db
 
   (** [count_lines_total ~db] counts the number of '\n' in the
      database. *)

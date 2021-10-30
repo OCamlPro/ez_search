@@ -12,11 +12,14 @@
 
 module EzSearch = struct
 
+  open EzCompat
   open EzFile.OP
 
   let version = 1
 
   module TYPES = struct
+
+    type dbm
 
     type file = {
       file_name : string ;
@@ -26,6 +29,7 @@ module EzSearch = struct
     }
 
     type db = {
+      mutable db_mapfile : dbm option ;
       db_text : string ;
       db_index : file array ;
     }
@@ -75,11 +79,13 @@ module EzSearch = struct
 
     let plain_file = db_dir // "sources.text" in
     let plain_oc = open_out_bin plain_file in
+    (* write a 8 bytes header first, that will be used by OCaml GC *)
+    output_bytes plain_oc ( Bytes.create 8 );
     let index = ref [] in
 
     Unix.chdir dir;
     let files = Sys.readdir "." in
-    let pos = ref 0 in
+    let pos = ref 8 in
     Array.iter (fun file_entry ->
 
         let index_file path =
@@ -109,22 +115,33 @@ module EzSearch = struct
               | _ -> ()
             ) file_entry
       ) files;
+    output_bytes plain_oc ( Bytes.create 8 );
     close_out plain_oc ;
     let db_index = Array.of_list !index in
     EzArray.rev db_index;
     output_index ~db_dir db_index
 
-  let load_db ~db_dir =
+  external mapfile_openfile : string -> dbm = "ocp_mapfile_openfile_c"
+  external mapfile_get_string : dbm -> string = "ocp_mapfile_get_string_c"
+
+  let load_db ~db_dir ?(use_mapfile = true) () =
     let db_index = input_index ~db_dir in
     let source_file = db_dir // "sources.text" in
-    let st = Unix.lstat source_file in
-    let size = st.Unix.st_size in
-    let s = Bytes.create size in
-    let ic = open_in_bin source_file in
-    really_input ic s 0 size ;
-    close_in ic;
-    let db_text = Bytes.unsafe_to_string s in
-    { db_index ; db_text }
+
+    if use_mapfile then
+      let db_mapfile = mapfile_openfile source_file in
+      let db_text = mapfile_get_string db_mapfile in
+      { db_index ; db_text ; db_mapfile = Some db_mapfile }
+    else
+      let st = Unix.lstat source_file in
+      let size = st.Unix.st_size - 16 in
+      let s = Bytes.create size in
+      let ic = open_in_bin source_file in
+      really_input ic s 0 8 ;
+      really_input ic s 0 size ;
+      close_in ic;
+      let db_text = Bytes.unsafe_to_string s in
+      { db_index ; db_text ; db_mapfile = None }
 
   let count_lines_total ~db =
     let s = db.db_text in

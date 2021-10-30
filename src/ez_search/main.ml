@@ -55,6 +55,7 @@ let main () =
   let is_regexp = ref false in
   let is_case_sensitive = ref true in
   let count_lines = ref false in
+  let use_mapfile = ref true in
 
   Arg.parse [
 
@@ -80,11 +81,15 @@ let main () =
         search := Some term),
     "TERM Term to search";
 
+    "--no-mmap", Arg.Clear use_mapfile,
+    " Do not map file in memory";
+
   ]
     (fun _ -> assert false)
     "Index and Search" ;
 
   let db_dir = !db_dir in
+  let use_mapfile = !use_mapfile in
   let pwd = Sys.getcwd () in
   let db_dir =
     if Filename.is_relative db_dir then
@@ -106,7 +111,8 @@ let main () =
       match !db with
       | None ->
           let x =
-            EzSearch.time "Load index" (fun () -> EzSearch.load_db ~db_dir) ()
+            EzSearch.time "Load index" (fun () ->
+                EzSearch.load_db ~db_dir ~use_mapfile ()) ()
           in
           db := Some x;
           x

@@ -39,7 +39,7 @@ kind = "program"
 # preprocess = "pps ppx_deriving_encoding"
 
 # files to skip while updating at package level
-# skip = []
+skip = [ "main.ml" ]
 
 # package library dependencies
 #   [dependencies]

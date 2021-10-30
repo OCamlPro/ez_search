@@ -1,5 +1,5 @@
 
-[![Actions Status](https://github.com/ocamlpro/ez_search/workflows/Main%20Workflow/badge.svg)](https://github.com/ocamlpro/ez_search/actions)
+[![Actions Status](https://github.com/ocamlpro/ez_search/workflows/Main%20Workflow/badge.svg)](https://github.com/ocamlpro/ez_search/actions)[![Actions Status](https://github.com/ocamlpro/ez_search/workflows/doc-deploy/badge.svg)](https://github.com/ocamlpro/ez_search/actions)
 [![Release](https://img.shields.io/github/release/ocamlpro/ez_search.svg)](https://github.com/ocamlpro/ez_search/releases)
 
 # ez_search
