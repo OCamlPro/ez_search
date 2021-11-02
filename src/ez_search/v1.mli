@@ -44,20 +44,20 @@ module EzSearch : sig
 
   open TYPES
 
-  (** [index_directory ~db_dir ~select DIRECTORY] index all files in
+  (** [index_directory ~db_dir ?db_name ~select DIRECTORY] index all files in
      [DIRECTORY], and store the index in [db_dir]. Every top-directory
      in DIRECTORY is considered as a [file_entry] name, and
      [file_name] are relative paths within top-directories.  [select]
      takes a path in argument and returns [true] if the content of the
      path should be indexed.  *)
   val index_directory :
-    db_dir:string -> select:( string -> bool ) -> string -> unit
+    db_dir:string -> ?db_name:string -> select:( string -> bool ) -> string -> unit
 
-  (** [load_db ~db_dir ?use_mapfile ()] loads the database in memory.
+  (** [load_db ~db_dir ?db_name ?use_mapfile ()] loads the database in memory.
      [use_mapfile] controls whether to use a memory-mapped file or
      load it normally. Memory-mapped files are normally more
      efficient, but support may be more unstable. *)
-  val load_db : db_dir:string -> ?use_mapfile:bool -> unit -> db
+  val load_db : db_dir:string -> ?db_name:string -> ?use_mapfile:bool -> unit -> db
 
   (** [count_lines_total ~db] counts the number of '\n' in the
      database. *)
