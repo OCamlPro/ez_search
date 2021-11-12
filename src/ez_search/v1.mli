@@ -60,19 +60,23 @@ module EzSearch : sig
   val load_db : db_dir:string -> ?use_mapfile:bool -> unit -> db
 
   (** [count_lines_total ~db] counts the number of '\n' in the
-     database. *)
+     database. Needs some time to iter on the whole text. *)
   val count_lines_total : db:db -> int
 
-  (** [search ~db ~f ?pos ?last regexp] searches a [regexp] in the
+  (** [length ~db] returns the number of chars in the
+     database. *)
+  val length : db:db -> int
+
+  (** [search ~db ~f ?pos ?last ?len regexp] searches a [regexp] in the
      database, starting either from [pos], from after the last
      occurrence [last], or from the beginning. Calls [f] for every
      occurrence found. [f] returns a boolean, that should be [true] if
      the search should continue after, or [false] if the search should
-     terminate immediately. *)
+     terminate immediately. [len] is the string length to use. *)
   val search :
     db:db -> f:(occurrence -> bool) ->
-    ?pos:int -> ?last:occurrence ->
-    Re.Str.regexp -> unit
+    ?pos:int -> ?last:occurrence -> ?len:int ->
+    ReStr.regexp -> unit
 
   (** [occurrence_line ~db occ] returns the line number in the file. *)
   val occurrence_line : db:db -> occurrence -> int

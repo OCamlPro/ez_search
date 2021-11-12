@@ -171,7 +171,12 @@ module EzSearch = struct
     in
     iter 0 len
 
-  let search ~db ~f ?pos ?last regexp =
+  let search ~db ~f ?pos ?last ?len regexp =
+    let slen = String.length db.db_text in
+    let len = match len with
+      | None -> slen
+      | Some len -> min len slen
+    in
     let pos = match pos with
       | Some pos -> pos
       | None ->
@@ -181,7 +186,7 @@ module EzSearch = struct
               occ.occ_file.file_pos + occ.occ_pos + 1
     in
     let rec iter pos =
-      match Re.Str.search_forward regexp db.db_text pos with
+      match ReStr.search_forward ~len:(len-pos) regexp db.db_text pos with
       | exception _ -> ()
       | pos ->
           let file = find_file db.db_index pos in
@@ -300,6 +305,8 @@ module EzSearch = struct
     String.sub db.db_text file.file_pos file.file_length
 
   let files ~db = db.db_index
+
+  let length ~db = String.length db.db_text
 
 (*
 let test s occ_pos =
