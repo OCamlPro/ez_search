@@ -50,6 +50,8 @@ module EzSearch = struct
 
   open TYPES
 
+let db_name_default = "sources"
+
   let time msg f x =
     let t0 = Unix.gettimeofday () in
     let y = f x in
@@ -58,15 +60,15 @@ module EzSearch = struct
     y
 
 
-  let output_index ~db_dir ( index : file array ) =
-    let index_file = db_dir // "sources.index" in
+  let output_index ~db_dir ~db_name ( index : file array ) =
+    let index_file = db_dir // db_name ^ ".index" in
     let oc = open_out_bin index_file in
     output_value oc version ;
     output_value oc index ;
     close_out oc
 
-  let input_index ~db_dir =
-    let index_file = db_dir // "sources.index" in
+  let input_index ~db_dir ~db_name =
+    let index_file = db_dir // db_name ^ ".index" in
     let ic = open_in_bin index_file in
     let v = input_value ic in
     if v <> version then assert false;
@@ -75,9 +77,9 @@ module EzSearch = struct
     index
 
 
-  let index_directory ~db_dir ~select dir =
+  let index_directory ~db_dir ?(db_name = db_name_default) ~select dir =
 
-    let plain_file = db_dir // "sources.text" in
+    let plain_file = db_dir // db_name ^ ".text" in
     let plain_oc = open_out_bin plain_file in
     (* write a 8 bytes header first, that will be used by OCaml GC *)
     output_bytes plain_oc ( Bytes.create 8 );
@@ -116,14 +118,14 @@ module EzSearch = struct
     close_out plain_oc ;
     let db_index = Array.of_list !index in
     EzArray.rev db_index;
-    output_index ~db_dir db_index
+    output_index ~db_dir ~db_name db_index
 
   external mapfile_openfile : string -> dbm = "ocp_mapfile_openfile_c"
   external mapfile_get_string : dbm -> string = "ocp_mapfile_get_string_c"
 
-  let load_db ~db_dir ?(use_mapfile = true) () =
-    let db_index = input_index ~db_dir in
-    let source_file = db_dir // "sources.text" in
+  let load_db ~db_dir ?(db_name = db_name_default) ?(use_mapfile = true) () =
+    let db_index = input_index ~db_dir ~db_name in
+    let source_file = db_dir // db_name ^ ".text" in
 
     if use_mapfile then
       let db_mapfile = mapfile_openfile source_file in

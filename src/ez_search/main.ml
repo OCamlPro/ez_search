@@ -85,6 +85,7 @@ let main () =
 
   let to_index = ref None in
   let db_dir = ref db_dir_default in
+  let sources = ref true in
   let search = ref None in
   let is_regexp = ref false in
   let is_case_sensitive = ref true in
@@ -99,9 +100,6 @@ let main () =
 
       "--index", Arg.String (fun dir -> to_index := Some dir),
       "DIR Index directory";
-
-      "--db_dir", Arg.String (fun dir -> db_dir := dir),
-      "DIR Database directory ($HOME/.opam/ocp-search/ by default)";
 
       "--count", Arg.Set count_lines,
       " Print number of lines in database";
@@ -134,6 +132,9 @@ let main () =
       "-q", Arg.Clear verbose,
       " Do not display debug info";
 
+      "--build", Arg.Clear sources,
+      " Index/search build files"
+
     ]
 
   in
@@ -145,6 +146,8 @@ let main () =
        exit 2)
     arg_usage;
 
+  let work_done = ref false in
+
   let db_dir = !db_dir in
   let use_mapfile = !use_mapfile in
   let pwd = Sys.getcwd () in
@@ -155,19 +158,28 @@ let main () =
       db_dir
   in
 
+  let db_name = if !sources then "sources" else "build" in
+
   begin
     match !to_index with
     | None -> ()
     | Some dir ->
+        work_done := true;
         EzFile.make_dir ~p:true db_dir;
         let select path =
           let basename = Filename.basename path in
-          let _, ext = EzString.rcut_at basename '.' in
-          match ext with
-          | "ml" | "mll" | "mly" | "mli" -> true
-          | _ -> false
+          let basename, ext = EzString.rcut_at basename '.' in
+          if !sources then
+            match ext with
+            | "ml" | "mll" | "mly" | "mli" -> true
+            | _ -> false
+          else
+            match String.lowercase_ascii basename with
+            | "dune"
+            | "makefile" -> true
+            | _ -> false
         in
-        EzSearch.index_directory dir ~db_dir ~select
+        EzSearch.index_directory dir ~db_dir ~db_name ~select
   end;
 
   let db =
@@ -175,9 +187,10 @@ let main () =
     fun () ->
       match !db with
       | None ->
+          work_done := true ;
           let x =
             let f () =
-              EzSearch.load_db ~db_dir ~use_mapfile ()
+              EzSearch.load_db ~db_dir ~db_name ~use_mapfile ()
             in
             if !verbose then
               EzSearch.time "Load index" f ()
@@ -236,4 +249,8 @@ let main () =
                 Printf.printf "%s:%s\n%!" file.file_entry file.file_name
               ) ( List.rev results );
   end;
+
+  if not !work_done then
+    Arg.usage arg_list arg_usage;
+
   ()
