@@ -25,7 +25,8 @@ let find_term ~db ~is_case_sensitive ~is_regexp
   in
 
   let ncores = Parmap.get_default_ncores () in
-  Printf.eprintf "Ncores: %d\n%!" ncores;
+  if verbose then
+    Printf.eprintf "Ncores: %d\n%!" ncores;
   let maxlen = EzSearch.length ~db in
   let seglen = maxlen / ncores + 1 in
   let sequence = Array.init ncores (fun n ->
@@ -67,7 +68,8 @@ let find_term ~db ~is_case_sensitive ~is_regexp
         total := !total + n;
         total_occs := !total_occs @ occs
       ) list;
-    Printf.eprintf "Found %d occurrences\n%!" !total;
+    if verbose then
+      Printf.eprintf "Found %d occurrences\n%!" !total;
     let n = ref 0 in
     List.iter (fun occ ->
         if !n < maxn then
