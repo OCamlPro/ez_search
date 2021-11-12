@@ -49,6 +49,7 @@ gen-version = "version.ml"
 ez_cmdliner = ">=0.2"
 ez_file = ">=0.2"
 re = "1.8.0"
+parmap = "1.2.3"
 
 # package tools dependencies
 [tools]

@@ -4,7 +4,7 @@
   (name ez_search)
   (public_name ez_search)
   (wrapped true)
-  (libraries re ez_file ez_cmdliner )
+  (libraries re parmap ez_file ez_cmdliner )
   
   (foreign_stubs (language c) (names mapfile_stubs))
   )

@@ -2,7 +2,7 @@
 
 # hash of toml configuration files
 # used for generation of all files
-3fa5e0ace4fc69294041eab6900276bc:.
+82bf7eac035549e7d6ab60a0aee82f93:.
 # end context for .
 
 # begin context for .github/workflows/workflow.yml
@@ -32,7 +32,7 @@ a8d1bcd6f62c6b813b77d3ff8959d8d2:.ocamlformat-ignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-cc37ca229e278889793244fd0c7d5a08:CHANGES.md
+b481cddf3bbfa7b88430a46de80baac6:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -92,12 +92,12 @@ c8281f46ba9a11d0b61bc8ef67eaa357:docs/style.css
 
 # begin context for dune-project
 # file dune-project
-1a7b28797b64381333bb4cc4f0682850:dune-project
+165f1dc963402d4a0d030d81673c29d0:dune-project
 # end context for dune-project
 
 # begin context for ez_search.opam
 # file ez_search.opam
-d718e0c62831a07cd9f517f2eeca85ee:ez_search.opam
+682fa0f0957e1815e4225e247c9fd4f9:ez_search.opam
 # end context for ez_search.opam
 
 # begin context for ocp-search.opam
@@ -152,7 +152,7 @@ b0cd838df6108f8c5ae7db6f6ab106bc:sphinx/index.rst
 
 # begin context for src/ez_search/dune
 # file src/ez_search/dune
-d705a1de370ffce5fe56f544696e87d6:src/ez_search/dune
+af9862b30bdbc3bf66ccd9725cc04b23:src/ez_search/dune
 # end context for src/ez_search/dune
 
 # begin context for src/ez_search/index.mld

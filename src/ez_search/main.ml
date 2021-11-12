@@ -24,52 +24,57 @@ let find_term ~db ~is_case_sensitive ~is_regexp
     | false, false -> ReStr.regexp_string_case_fold term
   in
 
-  let n = ref 0 in
+  let ncores = Parmap.get_default_ncores () in
+  Printf.eprintf "Ncores: %d\n%!" ncores;
   let maxlen = EzSearch.length ~db in
-  let seglen = max ( maxlen / 100 ) 10_000_000 in
-  let stop = ref false in
+  let seglen = maxlen / ncores + 1 in
+  let sequence = Array.init ncores (fun n ->
+      max ( n * seglen - 1000 ) 0
+    ) in
+  let print_occ occ =
+    let file = occ.occ_file in
+
+    Printf.printf "%s:%s\n%!" file.file_entry file.file_name ;
+    let line = EzSearch.occurrence_line ~db occ in
+    let c = EzSearch.occurrence_context ~db ~line occ ~max:lines in
+    List.iter (fun ( line, s ) ->
+        Printf.printf "%4d  %s\n%!" line s
+      ) c.prev_lines ;
+    Printf.printf "%4d--%s (position: %d)\n%!" line
+      c.curr_line c.curr_pos;
+    List.iter (fun ( line, s ) ->
+        Printf.printf "%4d  %s\n%!" line s
+      ) c.next_lines ;
+  in
   let f () =
-    let rec iter pos =
-      if pos > 0 && verbose then
-        Printf.eprintf "%d %% done\n%!" ( pos * 100 / maxlen );
-      if pos < maxlen then
-        let next = ref None in
-        EzSearch.search ~db regexp ~pos ~len:(pos+seglen) ~f:(fun occ ->
-            let file = occ.occ_file in
-            next := Some ( occ.occ_file.file_pos + occ.occ_pos + 1);
-            Printf.printf "%s:%s\n%!" file.file_entry file.file_name ;
-            let line = EzSearch.occurrence_line ~db occ in
-            let c = EzSearch.occurrence_context ~db ~line occ ~max:lines in
-            List.iter (fun ( line, s ) ->
-                Printf.printf "%4d  %s\n%!" line s
-              ) c.prev_lines ;
-            Printf.printf "%4d--%s (position: %d)\n%!" line
-              c.curr_line c.curr_pos;
-            List.iter (fun ( line, s ) ->
-                Printf.printf "%4d  %s\n%!" line s
-              ) c.next_lines ;
-            incr n;
-            let continue = !n < maxn in
-            if not continue then begin
-              stop := true ;
-              if verbose then
-                Printf.eprintf "Stopping after %d occurrences (use -n N)\n%!"
-                  maxn;
-            end;
-            continue
-          );
-        let nextpos = pos + seglen - 1000 in
-        let nextpos =
-          match !next with
-          | None -> nextpos
-          | Some occ_pos -> max occ_pos nextpos
-        in
-        if not !stop then
-          iter nextpos
+    let list =
+      Parmap.parmap ~ncores
+        (fun pos ->
+           let n = ref 0 in
+           let occs = ref [] in
+           EzSearch.search ~db regexp ~pos ~len:(pos+seglen) ~f:(fun occ ->
+               if !n < maxn then
+                 occs := occ :: !occs;
+               incr n;
+               true
+             );
+           !n, !occs
+        ) (A sequence)
     in
-    iter 0;
-    if not !stop && verbose then
-      Printf.eprintf "Found %d occurrences\n%!" !n
+    let total = ref 0 in
+    let total_occs = ref [] in
+    List.iter (fun (n, occs) ->
+        total := !total + n;
+        total_occs := !total_occs @ occs
+      ) list;
+    Printf.eprintf "Found %d occurrences\n%!" !total;
+    let n = ref 0 in
+    List.iter (fun occ ->
+        if !n < maxn then
+          print_occ occ;
+        incr n;
+
+      ) !total_occs
   in
   if verbose then
     EzSearch.time "Search" f ()

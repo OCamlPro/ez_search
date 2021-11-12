@@ -13,6 +13,7 @@
  (depends
    (ocaml (>= 4.07.0))
    (re (and (>= 1.8.0) (< 2.0.0)))
+   (parmap (and (>= 1.2.3) (< 2.0.0)))
    (ez_file ( >= 0.2 ))
    (ez_cmdliner ( >= 0.2 ))
    ppx_inline_test
