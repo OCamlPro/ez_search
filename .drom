@@ -2,7 +2,7 @@
 
 # hash of toml configuration files
 # used for generation of all files
-82bf7eac035549e7d6ab60a0aee82f93:.
+23e67d007e7d785b2438efdc46896f93:.
 # end context for .
 
 # begin context for .github/workflows/workflow.yml
@@ -32,7 +32,7 @@ a8d1bcd6f62c6b813b77d3ff8959d8d2:.ocamlformat-ignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-b481cddf3bbfa7b88430a46de80baac6:CHANGES.md
+a5b7a2543185d288589ff8ec596b57ca:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -152,7 +152,7 @@ b0cd838df6108f8c5ae7db6f6ab106bc:sphinx/index.rst
 
 # begin context for src/ez_search/dune
 # file src/ez_search/dune
-af9862b30bdbc3bf66ccd9725cc04b23:src/ez_search/dune
+1091f57cd04e178dcc0b03ee7ba7763f:src/ez_search/dune
 # end context for src/ez_search/dune
 
 # begin context for src/ez_search/index.mld

@@ -17,13 +17,26 @@ open EzSearch.TYPES
 let find_term ~db ~is_case_sensitive ~is_regexp
     ~lines ~maxn ~verbose term =
 
-  let regexp = match is_regexp, is_case_sensitive with
-    | true, true -> ReStr.regexp term
-    | true, false -> ReStr.regexp_case_fold term
-    | false, true -> ReStr.regexp_string term
-    | false, false -> ReStr.regexp_string_case_fold term
+  let find =
+    if true then
+      let regexp = match is_regexp, is_case_sensitive with
+        | true, true -> Str.regexp term
+        | true, false -> Str.regexp_case_fold term
+        | false, true -> Str.regexp_string term
+        | false, false -> Str.regexp_string_case_fold term
+      in
+      fun ~pos ~len s ->
+        Str.search_forward ~len regexp s pos
+    else
+      let regexp = match is_regexp, is_case_sensitive with
+        | true, true -> ReStr.regexp term
+        | true, false -> ReStr.regexp_case_fold term
+        | false, true -> ReStr.regexp_string term
+        | false, false -> ReStr.regexp_string_case_fold term
+      in
+      fun ~pos ~len s ->
+        ReStr.search_forward ~len:(len-pos) regexp s pos
   in
-
   let ncores = Parmap.get_default_ncores () in
   if verbose then
     Printf.eprintf "Ncores: %d\n%!" ncores;
@@ -53,7 +66,7 @@ let find_term ~db ~is_case_sensitive ~is_regexp
         (fun pos ->
            let n = ref 0 in
            let occs = ref [] in
-           EzSearch.search ~db regexp ~pos ~len:(pos+seglen) ~f:(fun occ ->
+           EzSearch.search ~db find ~pos ~len:(pos+seglen) ~f:(fun occ ->
                if !n < maxn then
                  occs := occ :: !occs;
                incr n;

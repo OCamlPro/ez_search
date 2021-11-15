@@ -50,6 +50,7 @@ ez_cmdliner = ">=0.2"
 ez_file = ">=0.2"
 re = "1.8.0"
 parmap = "1.2.3"
+# base-unix = { libname = "str", version = ">=base" }
 
 # package tools dependencies
 [tools]
@@ -65,4 +66,4 @@ parmap = "1.2.3"
 #  no-opam-doc = "yes" 
 #  gen-opam = "some" | "all" 
 [fields]
-dune-stanzas = "(foreign_stubs (language c) (names mapfile_stubs))"
+dune-stanzas = "(foreign_stubs (language c) (names mapfile_stubs strstubs))"

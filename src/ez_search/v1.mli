@@ -67,13 +67,24 @@ module EzSearch : sig
      database. *)
   val length : db:db -> int
 
-  (** [search ~db ~f ?pos ?last ?len regexp] searches a [regexp] in the
+  (** [search ~db ~f ?pos ?last ?len find] searches with [find] in the
      database, starting either from [pos], from after the last
      occurrence [last], or from the beginning. Calls [f] for every
      occurrence found. [f] returns a boolean, that should be [true] if
      the search should continue after, or [false] if the search should
      terminate immediately. [len] is the string length to use. *)
   val search :
+    db:db -> f:(occurrence -> bool) ->
+    ?pos:int -> ?last:occurrence -> ?len:int ->
+    (pos:int -> len:int -> string -> int) -> unit
+
+  (** [re_search ~db ~f ?pos ?last ?len regexp] searches a [regexp] in the
+     database, starting either from [pos], from after the last
+     occurrence [last], or from the beginning. Calls [f] for every
+     occurrence found. [f] returns a boolean, that should be [true] if
+     the search should continue after, or [false] if the search should
+     terminate immediately. [len] is the string length to use. *)
+  val re_search :
     db:db -> f:(occurrence -> bool) ->
     ?pos:int -> ?last:occurrence -> ?len:int ->
     ReStr.regexp -> unit

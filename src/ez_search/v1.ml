@@ -173,7 +173,7 @@ let db_name_default = "sources"
     in
     iter 0 len
 
-  let search ~db ~f ?pos ?last ?len regexp =
+  let search ~db ~f ?pos ?last ?len find =
     let slen = String.length db.db_text in
     let len = match len with
       | None -> slen
@@ -188,7 +188,7 @@ let db_name_default = "sources"
               occ.occ_file.file_pos + occ.occ_pos + 1
     in
     let rec iter pos =
-      match ReStr.search_forward ~len:(len-pos) regexp db.db_text pos with
+      match find ~pos ~len db.db_text with
       | exception _ -> ()
       | pos ->
           let file = find_file db.db_index pos in
@@ -200,6 +200,12 @@ let db_name_default = "sources"
             iter (pos+1)
     in
     iter pos
+
+  let re_search ~db ~f ?pos ?last ?len regexp =
+    let find ~pos ~len s =
+      ReStr.search_forward ~len:(len-pos) regexp s pos
+    in
+    search ~db ~f ?pos ?last ?len find
 
   let occurrence_line ~db occ =
     let s = db.db_text in
