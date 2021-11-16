@@ -20,6 +20,8 @@
 #define _LARGEFILE64_SOURCE
 #endif
 
+#define _GNU_SOURCE
+
 #include "caml/mlvalues.h"
 #include "caml/fail.h"
 #include "caml/alloc.h"
@@ -50,7 +52,7 @@ value ocp_mapfile_openfile_c (
   CAMLparam1( filename_v );
   CAMLlocal1( db_v );
   char *addr ;
-  unsigned char* filename = String_val( filename_v );
+  const unsigned char* filename = String_val( filename_v );
   int fd ;
   int map_flags;
   int open_mode = 420; /* 0o644 */
@@ -83,7 +85,7 @@ value ocp_mapfile_get_string_c ( value db_v )
 {
   mapfile_t * db = (mapfile_t *) Field( db_v, 0);
   value result = (value) ( db-> addr + 8 ) ;
-  mlsize_t len = db->map_size - 16 ;
+  mlsize_t len = db->map_size - 24 ;
   mlsize_t wosize = (len + sizeof (value)) / sizeof (value);
   mlsize_t offset_index ;
   
@@ -95,6 +97,24 @@ value ocp_mapfile_get_string_c ( value db_v )
   return result ;
 }
 
-
+value memmem_c( value haystack_v,
+                value haystack_pos_v,
+                value haystack_length_v,
+                value needle_v,
+                value needle_length_v 
+                )
+{
+  const char* needle = String_val( needle_v );
+  const char* haystack = String_val( haystack_v );
+  long int haystack_pos = Long_val( haystack_pos_v );
+  char* occ = memmem( haystack + haystack_pos,
+                      Long_val( haystack_length_v ) - haystack_pos,
+                      needle,
+                      Long_val( needle_length_v ) );
+  if( occ == NULL )
+    return Val_long( -1 );
+  else
+    return Val_long( occ - haystack ) ;
+}
 
 

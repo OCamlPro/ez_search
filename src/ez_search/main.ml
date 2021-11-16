@@ -14,53 +14,61 @@ open EzFile.OP
 open V1  (* from outside, should be: open Ez_search.V1 *)
 open EzSearch.TYPES
 
+external memmem : haystack:string -> pos:int -> haystack_len:int ->
+  needle:string -> needle_len:int -> int = "memmem_c" [@@noalloc]
+
+let memmem ~haystack ~pos ~len ~needle =
+  let pos = memmem ~haystack ~pos ~haystack_len:len ~needle
+      ~needle_len:(String.length needle) in
+  if pos = -1 then raise Not_found;
+  pos
+
 let find_term ~db ~is_case_sensitive ~is_regexp
     ~lines ~maxn ~verbose ~engine ~ncores term =
 
   let find =
     match engine with
+    | "memmem" ->
+        if is_regexp then
+          failwith "No regexp with memmem";
+        if not is_case_sensitive then
+          failwith "Only case sensitive with memmem";
+        fun ~pos ~len haystack ->
+          memmem ~haystack ~pos ~len ~needle:term
     | "pcre" ->
-      let rex, pat = match is_regexp, is_case_sensitive with
-        | true, true -> Some ( Pcre.regexp term ), None
-        | true, false -> Some ( Pcre.regexp term), None
-        | false, true -> None, Some term
-        | false, false -> None, Some term
-      in
-      fun ~pos ~len s ->
-        let t = Pcre.pcre_exec ~len ?rex ?pat ~pos s in
-        if Array.length t = 0 then exit 13;
-        t.(0)
+        let rex, pat = match is_regexp, is_case_sensitive with
+          | true, true -> Some ( Pcre.regexp term ), None
+          | true, false -> Some ( Pcre.regexp term), None
+          | false, true -> None, Some term
+          | false, false -> None, Some term
+        in
+        fun ~pos ~len s ->
+          let t = Pcre.pcre_exec ~len ?rex ?pat ~pos s in
+          if Array.length t = 0 then exit 13;
+          t.(0)
     | "str" ->
-      let regexp = match is_regexp, is_case_sensitive with
-        | true, true -> Str.regexp term
-        | true, false -> Str.regexp_case_fold term
-        | false, true -> Str.regexp_string term
-        | false, false -> Str.regexp_string_case_fold term
-      in
-      fun ~pos ~len s ->
-        Str.search_forward ~len regexp s pos
+        let regexp = match is_regexp, is_case_sensitive with
+          | true, true -> Str.regexp term
+          | true, false -> Str.regexp_case_fold term
+          | false, true -> Str.regexp_string term
+          | false, false -> Str.regexp_string_case_fold term
+        in
+        fun ~pos ~len s ->
+          Str.search_forward ~len regexp s pos
     | "re" ->
-      let regexp = match is_regexp, is_case_sensitive with
-        | true, true -> ReStr.regexp term
-        | true, false -> ReStr.regexp_case_fold term
-        | false, true -> ReStr.regexp_string term
-        | false, false -> ReStr.regexp_string_case_fold term
-      in
-      fun ~pos ~len s ->
-        ReStr.search_forward ~len:(len-pos) regexp s pos
+        let regexp = match is_regexp, is_case_sensitive with
+          | true, true -> ReStr.regexp term
+          | true, false -> ReStr.regexp_case_fold term
+          | false, true -> ReStr.regexp_string term
+          | false, false -> ReStr.regexp_string_case_fold term
+        in
+        fun ~pos ~len s ->
+          ReStr.search_forward ~len:(len-pos) regexp s pos
     | _ ->
         Printf.eprintf "Error: unknown engine %S (should be: str|pcre|re)\n%!"
           engine;
         exit 2
   in
-  let ncores = max 0 ( min ( Parmap.get_default_ncores () ) (ncores-1)) in
-  if verbose then
-    Printf.eprintf "Ncores: %d\n%!" ncores;
-  let maxlen = EzSearch.length ~db in
-  let seglen = maxlen / (ncores+1) + 1 in
-  let sequence = Array.init (ncores+1) (fun n ->
-      max ( n * seglen - 1000 ) 0
-    ) in
   let print_occ pos =
     let occ = EzSearch.occurrence_file ~db pos in
     let file = occ.occ_file in
@@ -78,19 +86,38 @@ let find_term ~db ~is_case_sensitive ~is_regexp
       ) c.next_lines ;
   in
   let f () =
+    let ncores = max 0 ( min ( Parmap.get_default_ncores () ) (ncores-1)) in
+    if verbose then
+      Printf.eprintf "Ncores: %d\n%!" ncores;
     let list =
-      Parmap.parmap ~ncores
-        (fun pos ->
-           let n = ref 0 in
-           let occs = ref [] in
-           EzSearch.search ~db find ~pos ~len:(pos+seglen) ~f:(fun occ ->
-               if !n < maxn then
-                 occs := occ :: !occs;
-               incr n;
-               true
-             );
-           !n, !occs
-        ) (A sequence)
+      let maxlen = EzSearch.length ~db in
+      if ncores = 0 then
+        let n = ref 0 in
+        let occs = ref [] in
+        EzSearch.search ~db find ~pos:0 ~len:maxlen ~f:(fun occ ->
+            if !n < maxn then
+              occs := occ :: !occs;
+            incr n;
+            true
+          );
+        [!n, !occs]
+      else
+        let seglen = maxlen / (ncores+1) + 1 in
+        let sequence = Array.init (ncores+1) (fun n ->
+            max ( n * seglen - 1000 ) 0
+          ) in
+        Parmap.parmap ~ncores
+          (fun pos ->
+             let n = ref 0 in
+             let occs = ref [] in
+             EzSearch.search ~db find ~pos ~len:(pos+seglen) ~f:(fun occ ->
+                 if !n < maxn then
+                   occs := occ :: !occs;
+                 incr n;
+                 true
+               );
+             !n, !occs
+          ) (A sequence)
     in
     let total = ref 0 in
     let total_occs = ref [] in
