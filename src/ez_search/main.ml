@@ -15,10 +15,22 @@ open V1  (* from outside, should be: open Ez_search.V1 *)
 open EzSearch.TYPES
 
 let find_term ~db ~is_case_sensitive ~is_regexp
-    ~lines ~maxn ~verbose term =
+    ~lines ~maxn ~verbose ~engine ~ncores term =
 
   let find =
-    if true then
+    match engine with
+    | "pcre" ->
+      let rex, pat = match is_regexp, is_case_sensitive with
+        | true, true -> Some ( Pcre.regexp term ), None
+        | true, false -> Some ( Pcre.regexp term), None
+        | false, true -> None, Some term
+        | false, false -> None, Some term
+      in
+      fun ~pos ~len s ->
+        let t = Pcre.pcre_exec ~len ?rex ?pat ~pos s in
+        if Array.length t = 0 then exit 13;
+        t.(0)
+    | "str" ->
       let regexp = match is_regexp, is_case_sensitive with
         | true, true -> Str.regexp term
         | true, false -> Str.regexp_case_fold term
@@ -27,7 +39,7 @@ let find_term ~db ~is_case_sensitive ~is_regexp
       in
       fun ~pos ~len s ->
         Str.search_forward ~len regexp s pos
-    else
+    | "re" ->
       let regexp = match is_regexp, is_case_sensitive with
         | true, true -> ReStr.regexp term
         | true, false -> ReStr.regexp_case_fold term
@@ -36,13 +48,17 @@ let find_term ~db ~is_case_sensitive ~is_regexp
       in
       fun ~pos ~len s ->
         ReStr.search_forward ~len:(len-pos) regexp s pos
+    | _ ->
+        Printf.eprintf "Error: unknown engine %S (should be: str|pcre|re)\n%!"
+          engine;
+        exit 2
   in
-  let ncores = Parmap.get_default_ncores () in
+  let ncores = max 0 ( min ( Parmap.get_default_ncores () ) (ncores-1)) in
   if verbose then
     Printf.eprintf "Ncores: %d\n%!" ncores;
   let maxlen = EzSearch.length ~db in
-  let seglen = maxlen / ncores + 1 in
-  let sequence = Array.init ncores (fun n ->
+  let seglen = maxlen / (ncores+1) + 1 in
+  let sequence = Array.init (ncores+1) (fun n ->
       max ( n * seglen - 1000 ) 0
     ) in
   let print_occ pos =
@@ -116,6 +132,8 @@ let main () =
   let n = ref 10 in
   let content = ref None in
   let verbose = ref true in
+  let engine = ref "str" in
+  let ncores = ref max_int in
 
   let arg_list = Arg.align  [
 
@@ -144,6 +162,9 @@ let main () =
       "--lines", Arg.Int ( (:=) lines ),
       "NLINES Number of lines of context to print";
 
+      "--engine", Arg.String ( (:=) engine),
+      "ENGINE Choose regexp engine (str|pcre|re)";
+
       "-n", Arg.Int ( (:=) n ),
       "NBR Maximal number of occurrences";
 
@@ -154,7 +175,10 @@ let main () =
       " Do not display debug info";
 
       "--build", Arg.Clear sources,
-      " Index/search build files"
+      " Index/search build files";
+
+      "--ncores", Arg.Int ( (:=) ncores ),
+      "NCORES Set number of cores to use (auto)";
 
     ]
 
@@ -239,7 +263,7 @@ let main () =
         let db = db() in
         find_term ~db ~is_regexp ~is_case_sensitive
           ~lines:!lines ~verbose:!verbose
-          ~maxn:!n term
+          ~maxn:!n term ~engine:!engine ~ncores:!ncores
   end;
 
   begin
