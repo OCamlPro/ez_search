@@ -45,7 +45,8 @@ let find_term ~db ~is_case_sensitive ~is_regexp
   let sequence = Array.init ncores (fun n ->
       max ( n * seglen - 1000 ) 0
     ) in
-  let print_occ occ =
+  let print_occ pos =
+    let occ = EzSearch.occurrence_file ~db pos in
     let file = occ.occ_file in
 
     Printf.printf "%s:%s\n%!" file.file_entry file.file_name ;

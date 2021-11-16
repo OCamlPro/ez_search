@@ -34,12 +34,14 @@ module EzSearch = struct
       db_index : file array ;
     }
 
-    type occurrence = {
+    type occurrence = int
+
+    type occurrence_file = {
       occ_file : file ;
-      occ_pos : int ;
+      occ_file_pos : int ;
     }
 
-    type context = {
+    type occurrence_context = {
       prev_lines : ( int * string ) list ;
       curr_line : string ;
       curr_pos : int ;
@@ -173,6 +175,13 @@ let db_name_default = "sources"
     in
     iter 0 len
 
+  let occurrence_file ~db pos =
+    let file = find_file db.db_index pos in
+    {
+      occ_file_pos = pos - file.file_pos ;
+      occ_file = file ;
+    }
+
   let search ~db ~f ?pos ?last ?len find =
     let slen = String.length db.db_text in
     let len = match len with
@@ -185,18 +194,13 @@ let db_name_default = "sources"
           match last with
           | None -> 0
           | Some occ ->
-              occ.occ_file.file_pos + occ.occ_pos + 1
+              occ.occ_file.file_pos + occ.occ_file_pos + 1
     in
     let rec iter pos =
       match find ~pos ~len db.db_text with
       | exception _ -> ()
       | pos ->
-          let file = find_file db.db_index pos in
-          let occ = {
-            occ_pos = pos - file.file_pos ;
-            occ_file = file ;
-          } in
-          if f occ then
+          if f pos then
             iter (pos+1)
     in
     iter pos
@@ -224,13 +228,13 @@ let db_name_default = "sources"
     iter
       ~pos
       ~line:1
-      ~occ_pos: ( pos + occ.occ_pos )
+      ~occ_pos: ( pos + occ.occ_file_pos )
 
   let occurrence_context ~db ~line occ ~max =
     let s = db.db_text in
     let file = occ.occ_file in
     let file_pos = file.file_pos in
-    let pos = file_pos + occ.occ_pos in
+    let pos = file_pos + occ.occ_file_pos in
     let file_end = file_pos + file.file_length in
 
     let rec prev ~pos ~line lines ~max =
