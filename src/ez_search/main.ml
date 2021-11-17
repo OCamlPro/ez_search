@@ -17,6 +17,9 @@ open EzSearch.TYPES
 external memmem : haystack:string -> pos:int -> haystack_len:int ->
   needle:string -> needle_len:int -> int = "memmem_c" [@@noalloc]
 
+external count_matches :
+  needle:string -> haystack:string -> startpos:int -> length:int -> int = "ocaml_countmatch"
+
 let memmem ~haystack ~pos ~len ~needle =
   let pos = memmem ~haystack ~pos ~haystack_len:len ~needle
       ~needle_len:(String.length needle) in
@@ -28,14 +31,14 @@ let find_term ~db ~is_case_sensitive ~is_regexp
 
   let find =
     match engine with
-    | "memmem" ->
+    | "memmem" | "chambart" ->
         if is_regexp then
           failwith "No regexp with memmem";
         if not is_case_sensitive then
           failwith "Only case sensitive with memmem";
         fun ~pos ~len haystack ->
           memmem ~haystack ~pos ~len ~needle:term
-    | "pcre" ->
+    | "pcre" -> (* does not work correctly, why ? *)
         let rex, pat = match is_regexp, is_case_sensitive with
           | true, true -> Some ( Pcre.regexp term ), None
           | true, false -> Some ( Pcre.regexp term), None
@@ -45,6 +48,8 @@ let find_term ~db ~is_case_sensitive ~is_regexp
         fun ~pos ~len s ->
           let t = Pcre.pcre_exec ~len ?rex ?pat ~pos s in
           if Array.length t = 0 then exit 13;
+          if Array.length t <> 1 then
+            Printf.printf "len=%d\n%!" ( Array.length t );
           t.(0)
     | "str" ->
         let regexp = match is_regexp, is_case_sensitive with
@@ -91,6 +96,32 @@ let find_term ~db ~is_case_sensitive ~is_regexp
       Printf.eprintf "Ncores: %d\n%!" ncores;
     let list =
       let maxlen = EzSearch.length ~db in
+      let seglen = maxlen / (ncores+1) + 1 in
+      let sequence = Array.init (ncores+1) (fun n ->
+          max ( n * seglen - 1000 ) 0
+        ) in
+      if engine = "chambart" then
+        Parmap.parmap ~ncores
+          (fun pos ->
+             let n = ref 0 in
+             let occs = ref [] in
+             EzSearch.search ~db find ~pos ~len:(pos+seglen) ~f:(fun occ ->
+                 occs := occ :: !occs;
+                 incr n;
+                 !n < maxn
+               );
+             let n =
+               if !n = maxn then
+                 let startpos = EzSearch.pos @@ List.hd !occs in
+                 !n + count_matches ~needle:term
+                   ~haystack:(EzSearch.text ~db) ~startpos
+                   ~length:(pos+seglen-startpos)
+               else
+                 !n
+             in
+             n, !occs
+          ) (A sequence)
+      else
       if ncores = 0 then
         let n = ref 0 in
         let occs = ref [] in
@@ -102,10 +133,6 @@ let find_term ~db ~is_case_sensitive ~is_regexp
           );
         [!n, !occs]
       else
-        let seglen = maxlen / (ncores+1) + 1 in
-        let sequence = Array.init (ncores+1) (fun n ->
-            max ( n * seglen - 1000 ) 0
-          ) in
         Parmap.parmap ~ncores
           (fun pos ->
              let n = ref 0 in

@@ -112,6 +112,10 @@ module EzSearch : sig
   (** [files ~db] returns all the files stored in the database. *)
   val files : db:db -> file array
 
+  (* do not use *)
+  val pos : occurrence -> int
+  val text: db:db -> string
+
   (** [time msg f x] prints the time spent executing [f x]. *)
   val time : string -> ('a -> 'b) -> 'a -> 'b
 end

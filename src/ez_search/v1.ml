@@ -366,4 +366,6 @@ uv
   done
 *)
 
+  let pos occ = occ
+  let text ~db = db.db_text
 end
