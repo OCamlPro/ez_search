@@ -111,8 +111,8 @@ let find_term ~db ~is_case_sensitive ~is_regexp
                  !n < maxn
                );
              let n =
-               if !n = maxn then
-                 let startpos = EzSearch.pos @@ List.hd !occs in
+               if maxn > 0 && !n = maxn then
+                 let startpos = 1 + EzSearch.pos ( List.hd !occs ) in
                  !n + count_matches ~needle:term
                    ~haystack:(EzSearch.text ~db) ~startpos
                    ~length:(pos+seglen-startpos)
