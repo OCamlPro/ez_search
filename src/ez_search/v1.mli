@@ -80,16 +80,22 @@ module EzSearch : sig
     ?pos:int -> ?last:occurrence_file -> ?len:int ->
     (pos:int -> len:int -> string -> int) -> unit
 
-  (** [re_search ~db ~f ?pos ?last ?len regexp] searches a [regexp] in the
-     database, starting either from [pos], from after the last
-     occurrence [last], or from the beginning. Calls [f] for every
-     occurrence found. [f] returns a boolean, that should be [true] if
-     the search should continue after, or [false] if the search should
-     terminate immediately. [len] is the string length to use. *)
-  val re_search :
-    db:db -> f:(occurrence -> bool) ->
-    ?pos:int -> ?last:occurrence_file -> ?len:int ->
-    ReStr.regexp -> unit
+  (** [search_and_count ~db ?is_regexp ?is_case_sensitive ?ncores
+     ?maxn ?find term] searches [term] in the database, either using
+     [find] if provided, or a mix of [Str] and [memmem] otherwise
+     (depending on [is_regexp] and [is_case_sensitive]). Uses [Parmap]
+     to split the computation on multiple cores, with at most [ncores]
+     if provided. Returns a very close approximation of the number of
+     occurrences (exact on 1 core), and a list of at least [maxn]
+     occurrences. *)
+  val search_and_count :
+    db:TYPES.db ->
+    ?is_regexp:bool ->
+    ?is_case_sensitive:bool ->
+    ?ncores:int -> ?maxn:int ->
+    ?find:(pos:int -> len:int -> string -> int) ->
+    string ->
+    int * occurrence list
 
   (** [occurrence_file ~db pos] returns the file occurrence of the match. *)
   val occurrence_file : db:db -> occurrence -> occurrence_file
@@ -115,6 +121,8 @@ module EzSearch : sig
   (* do not use *)
   val pos : occurrence -> int
   val text: db:db -> string
+  val memmem :
+    haystack:string -> pos:int -> len:int -> needle:string -> int
 
   (** [time msg f x] prints the time spent executing [f x]. *)
   val time : string -> ('a -> 'b) -> 'a -> 'b

@@ -205,11 +205,109 @@ let db_name_default = "sources"
     in
     iter pos
 
-  let re_search ~db ~f ?pos ?last ?len regexp =
-    let find ~pos ~len s =
-      ReStr.search_forward ~len:(len-pos) regexp s pos
+
+  external memmem : haystack:string -> pos:int -> haystack_len:int ->
+    needle:string -> needle_len:int -> int = "memmem_c" [@@noalloc]
+
+  external count_matches :
+    needle:string -> haystack:string -> startpos:int -> length:int -> int = "ocaml_countmatch"
+
+  let memmem ~haystack ~pos ~len ~needle =
+    let pos = memmem ~haystack ~pos ~haystack_len:len ~needle
+        ~needle_len:(String.length needle) in
+    if pos = -1 then raise Not_found;
+    pos
+
+
+  let search_and_count ~db
+      ?(is_regexp=false)
+      ?(is_case_sensitive=true)
+      ?(ncores = max_int)
+      ?(maxn = 10)
+      ?find
+      term =
+    let maxn = max 1 maxn in
+    let find =
+      match find with
+      | Some find -> find
+      | None ->
+          match is_regexp, is_case_sensitive with
+          | true, true ->
+              let regexp = Str.regexp term in
+              fun ~pos ~len s ->
+                Str.search_forward ~len:(len-pos) regexp s pos
+          | true, false ->
+              let regexp = Str.regexp_case_fold term in
+              fun ~pos ~len s ->
+                Str.search_forward ~len:(len-pos) regexp s pos
+          | false, true ->
+              fun ~pos ~len haystack ->
+                memmem ~haystack ~pos ~len ~needle:term
+          | false, false ->
+              let regexp = Str.regexp_string_case_fold term in
+              fun ~pos ~len s ->
+                Str.search_forward ~len:(len-pos) regexp s pos
     in
-    search ~db ~f ?pos ?last ?len find
+    let ncores = max 0 ( min ( Parmap.get_default_ncores () ) (ncores-1)) in
+    let list =
+      let maxlen = String.length db.db_text in
+      let seglen = maxlen / (ncores+1) + 1 in
+      let sequence = Array.init (ncores+1) (fun n ->
+          max ( n * seglen - 1000 ) 0
+        ) in
+      if is_case_sensitive && not is_regexp then
+        Parmap.parmap ~ncores
+          (fun pos ->
+             let n = ref 0 in
+             let occs = ref [] in
+             search ~db find ~pos ~len:(pos+seglen) ~f:(fun occ ->
+                 occs := occ :: !occs;
+                 incr n;
+                 !n < maxn
+               );
+             let n =
+               if maxn > 0 && !n = maxn then
+                 let startpos = 1 + List.hd !occs in
+                 !n + count_matches ~needle:term
+                   ~haystack:(db.db_text) ~startpos
+                   ~length:(pos+seglen-startpos)
+               else
+                 !n
+             in
+             n, !occs
+          ) (A sequence)
+      else
+      if ncores = 0 then
+        let n = ref 0 in
+        let occs = ref [] in
+        search ~db find ~pos:0 ~len:maxlen ~f:(fun occ ->
+            if !n < maxn then
+              occs := occ :: !occs;
+            incr n;
+            true
+          );
+        [!n, !occs]
+      else
+        Parmap.parmap ~ncores
+          (fun pos ->
+             let n = ref 0 in
+             let occs = ref [] in
+             search ~db find ~pos ~len:(pos+seglen) ~f:(fun occ ->
+                 if !n < maxn then
+                   occs := occ :: !occs;
+                 incr n;
+                 true
+               );
+             !n, !occs
+          ) (A sequence)
+    in
+    let total = ref 0 in
+    let total_occs = ref [] in
+    List.iter (fun (n, occs) ->
+        total := !total + n;
+        total_occs := !total_occs @ occs
+      ) list;
+    !total, !total_occs
 
   let occurrence_line ~db occ =
     let s = db.db_text in
