@@ -30,6 +30,7 @@ let find_term ~db ~is_case_sensitive ~is_regexp
                 failwith "Only case sensitive with memmem";
               fun ~pos ~len haystack ->
                 EzSearch.memmem ~haystack ~pos ~len ~needle:term
+                  (*
           | "pcre" -> (* does not work correctly, why ? *)
               let rex, pat = match is_regexp, is_case_sensitive with
                 | true, true -> Some ( Pcre.regexp term ), None
@@ -43,6 +44,7 @@ let find_term ~db ~is_case_sensitive ~is_regexp
                 if Array.length t <> 1 then
                   Printf.printf "len=%d\n%!" ( Array.length t );
                 t.(0)
+*)
           | "str" ->
               let regexp = match is_regexp, is_case_sensitive with
                 | true, true -> Str.regexp term

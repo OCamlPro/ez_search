@@ -1,4 +1,5 @@
 (*
+(*
    PCRE-OCAML - Perl Compatibility Regular Expressions for OCaml
 
    Copyright (C) 1999-  Markus Mottl
@@ -1101,3 +1102,4 @@ let foreach_file filenames f =
     try f filename file; close_in file
     with exn -> close_in file; raise exn in
   List.iter do_with_file filenames
+*)
