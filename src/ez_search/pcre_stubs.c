@@ -1,3 +1,4 @@
+#if 0
 /*
    PCRE-OCAML - Perl Compatibility Regular Expressions for OCaml
 
@@ -900,3 +901,5 @@ CAMLprim value pcre_config_match_limit_recursion_stub_bc(value v_unit)
 /* Returns boolean indicating use of stack recursion */
 CAMLprim value pcre_config_stackrecurse_stub(value __unused v_unit)
 { return Val_bool(pcre_config_int(PCRE_CONFIG_STACKRECURSE)); }
+
+#endif

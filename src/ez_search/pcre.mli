@@ -1,4 +1,5 @@
 (*
+(*
    PCRE-OCAML - Perl Compatibility Regular Expressions for OCaml
 
    Copyright (C) 1999-  Markus Mottl
@@ -1016,3 +1017,4 @@ val unsafe_pcre_dfa_exec :
     ~workpace].
     You should read the C-source to know what happens.
     If you do not understand it - {b don't use this function!} *)
+*)
