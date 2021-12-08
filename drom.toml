@@ -65,6 +65,9 @@ share-dirs = ["share"]
 # project-wide fields (depends on project skeleton)
 [fields]
 # ...
+opam-trailer= """
+available: os ="linux"
+"""
 
 [[package]]
 dir = "src/ez_search"

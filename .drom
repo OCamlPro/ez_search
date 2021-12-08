@@ -5,7 +5,7 @@ version:0.6.0~dev
 
 # hash of toml configuration files
 # used for generation of all files
-f74403234b5bfe2dbd5e852284aa0e79:.
+ffc3966062695f15aa29d5a1467fcc87:.
 # end context for .
 
 # begin context for .github/workflows/workflow.yml
@@ -100,12 +100,12 @@ c8281f46ba9a11d0b61bc8ef67eaa357:docs/style.css
 
 # begin context for opam/ez_search.opam
 # file opam/ez_search.opam
-f5582d8c490de6ece7fa4b8d567198ab:opam/ez_search.opam
+7eeafe9eb82efad182acee8bb45a0494:opam/ez_search.opam
 # end context for opam/ez_search.opam
 
 # begin context for opam/ocp-search.opam
 # file opam/ocp-search.opam
-68bb1467c73bdf4dc47a20f3b5d0717b:opam/ocp-search.opam
+7f8f38d6cdac411f0a0f3b254b7e3437:opam/ocp-search.opam
 # end context for opam/ocp-search.opam
 
 # begin context for scripts/after.sh

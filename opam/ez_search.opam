@@ -47,3 +47,4 @@ depends: [
   "odoc" {with-doc}
   "ocamlformat" {with-test}
 ]
+available: os ="linux"
