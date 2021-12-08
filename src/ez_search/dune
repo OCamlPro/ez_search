@@ -6,8 +6,7 @@
   (wrapped true)
   (libraries re parmap ez_file ez_cmdliner )
   
-    (foreign_stubs (language c) (names mapfile_stubs strstubs pcre_stubs strfind)(flags (:standard) -O2 -fPIC -DPIC))
-  (c_library_flags -lpcre)
+    (foreign_stubs (language c) (names mapfile_stubs strstubs strfind)(flags (:standard) -O2 -fPIC -DPIC))
 
   )
 

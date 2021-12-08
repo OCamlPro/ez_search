@@ -3,7 +3,7 @@ drom-version = "0.1"
 
 [project]
 authors = ["Fabrice Le Fessant <fabrice.le_fessant@origin-labs.com>"]
-ci-systems = ["ubuntu-latest", "macos-latest"]
+ci-systems = ["ubuntu-latest"]
 copyright = "OCamlPro SAS"
 edition = "4.10.0"
 github-organization = "ocamlpro"
@@ -11,7 +11,7 @@ license = "LGPL2"
 min-edition = "4.07.0"
 name = "ez_search"
 synopsis = "The ez_search project"
-version = "0.2.0"
+version = "0.2.1"
 
 # keys that you could also define:
 # odoc-target = "...odoc-target..."
@@ -65,6 +65,9 @@ share-dirs = ["share"]
 # project-wide fields (depends on project skeleton)
 [fields]
 # ...
+opam-trailer= """
+available: os ="linux"
+"""
 
 [[package]]
 dir = "src/ez_search"
