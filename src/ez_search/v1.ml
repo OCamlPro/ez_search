@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module Parmap = UseParmap
+
 module EzSearch = struct
 
   open EzCompat
@@ -61,7 +63,6 @@ let db_name_default = "sources"
     Printf.eprintf "%s lasted: %.2f s\n%!" msg ( t1 -. t0 ) ;
     y
 
-
   let output_index ~db_dir ~db_name ( index : file array ) =
     let index_file = db_dir // db_name ^ ".index" in
     let oc = open_out_bin index_file in
@@ -78,8 +79,7 @@ let db_name_default = "sources"
     close_in ic ;
     index
 
-
-  let index_directory ~db_dir ?(db_name = db_name_default) ~select dir =
+  let index_files ~db_dir ?(db_name = db_name_default) f =
 
     let plain_file = db_dir // db_name ^ ".text" in
     let plain_oc = open_out_bin plain_file in
@@ -87,40 +87,54 @@ let db_name_default = "sources"
     output_bytes plain_oc ( Bytes.create 8 );
     let index = ref [] in
 
-    Unix.chdir dir;
-    let files = Sys.readdir "." in
     (* file_pos origin is offsetted by 8 bytes *)
     let pos = ref 0 in
-    Array.iter (fun file_entry ->
 
-        let index_file path =
-          match EzFile.read_file ( file_entry // path ) with
-          | exception exn ->
-              Printf.eprintf "Warning with file %S >> %S:\n%!" file_entry path;
-              Printf.eprintf "  Exception %s\n%!" (Printexc.to_string exn)
-          | s ->
-              let file_length = String.length s in
-              Printf.fprintf plain_oc "%s\000\000\000\000" s ;
-              index := {
-                file_name = path ;
-                file_entry ;
-                file_pos = !pos ;
-                file_length ;
-              } :: !index;
-              pos := !pos + file_length + 4;
-        in
-
-        EzFile.make_select EzFile.iter_dir ~deep:true
-          ~f:(fun path ->
-              if select path then
-                index_file path
-            ) file_entry
-      ) files;
+    let index_file ~file_entry ~file_name ~file_content =
+      let file_length = String.length file_content in
+      Printf.fprintf plain_oc "%s\000\000\000\000" file_content ;
+      index := {
+        file_name ;
+        file_entry ;
+        file_pos = !pos ;
+        file_length ;
+      } :: !index;
+      pos := !pos + file_length + 4;
+    in
+    f index_file;
     output_bytes plain_oc ( Bytes.create 8 );
     close_out plain_oc ;
     let db_index = Array.of_list !index in
     EzArray.rev db_index;
     output_index ~db_dir ~db_name db_index
+
+  let index_directory ~db_dir ?db_name ~select dir =
+
+    index_files ~db_dir ?db_name
+      (fun index_file ->
+
+         let curdir = Sys.getcwd () in
+         Unix.chdir dir;
+         let entries = Sys.readdir "." in
+         Array.iter (fun file_entry ->
+
+             let index_file path =
+               match EzFile.read_file ( file_entry // path ) with
+               | exception exn ->
+                   Printf.eprintf "Warning with file %S >> %S:\n%!" file_entry path;
+                   Printf.eprintf "  Exception %s\n%!" (Printexc.to_string exn)
+               | s ->
+                   index_file ~file_entry ~file_name:path ~file_content:s
+             in
+
+             EzFile.make_select EzFile.iter_dir ~deep:true
+               ~f:(fun path ->
+                   if select path then
+                     index_file path
+                 ) file_entry;
+           ) entries;
+         Unix.chdir curdir
+      )
 
   external mapfile_openfile : string -> dbm = "ocp_mapfile_openfile_c"
   external mapfile_get_string : dbm -> string = "ocp_mapfile_get_string_c"
@@ -225,25 +239,38 @@ let db_name_default = "sources"
       ?(ncores = max_int)
       ?(maxn = 10)
       ?find
+      ?(engine=`Re)
       term =
     let maxn = max 1 maxn in
     let find =
       match find with
       | Some find -> find
       | None ->
-          match is_regexp, is_case_sensitive with
-          | true, true ->
+          match is_regexp, is_case_sensitive, engine with
+          | true, true, `Re ->
+              let regexp = ReStr.regexp term in
+              fun ~pos ~len s ->
+                ReStr.search_forward ~len:(len-pos) regexp s pos
+          | true, true, `Str ->
               let regexp = Str.regexp term in
               fun ~pos ~len s ->
                 Str.search_forward ~len:(len-pos) regexp s pos
-          | true, false ->
+          | true, false, `Re ->
+              let regexp = ReStr.regexp_case_fold term in
+              fun ~pos ~len s ->
+                ReStr.search_forward ~len:(len-pos) regexp s pos
+          | true, false, `Str ->
               let regexp = Str.regexp_case_fold term in
               fun ~pos ~len s ->
                 Str.search_forward ~len:(len-pos) regexp s pos
-          | false, true ->
+          | false, true, _ ->
               fun ~pos ~len haystack ->
                 memmem ~haystack ~pos ~len ~needle:term
-          | false, false ->
+          | false, false, `Re ->
+              let regexp = ReStr.regexp_string_case_fold term in
+              fun ~pos ~len s ->
+                ReStr.search_forward ~len:(len-pos) regexp s pos
+          | false, false, `Str ->
               let regexp = Str.regexp_string_case_fold term in
               fun ~pos ~len s ->
                 Str.search_forward ~len:(len-pos) regexp s pos
@@ -251,7 +278,7 @@ let db_name_default = "sources"
     let ncores = max 0 ( min ( Parmap.get_default_ncores () ) (ncores-1)) in
     let list =
       let maxlen = String.length db.db_text in
-      let seglen = maxlen / (ncores+1) + 1 in
+      let seglen = maxlen / (ncores+1) in
       let sequence = Array.init (ncores+1) (fun n ->
           max ( n * seglen - 1000 ) 0
         ) in

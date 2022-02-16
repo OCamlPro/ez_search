@@ -5,7 +5,7 @@ version:0.6.0~dev
 
 # hash of toml configuration files
 # used for generation of all files
-f40abbf3c3bcc996e7c136743c1bdd99:.
+25b064c28be8edb9454786fb3f9069f8:.
 # end context for .
 
 # begin context for .github/workflows/workflow.yml
@@ -35,12 +35,12 @@ a8d1bcd6f62c6b813b77d3ff8959d8d2:.ocamlformat-ignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-f1a7daa255c99af85b500e7257e2ba93:CHANGES.md
+ccccad7d26ae30779f8b590efe82b8f1:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
 # file LICENSE.md
-02f5d892afcdc564e5fb067198a06740:LICENSE.md
+3e8c72433d2b8531f0e9716ab0e5fc8a:LICENSE.md
 # end context for LICENSE.md
 
 # begin context for Makefile
@@ -95,17 +95,17 @@ c8281f46ba9a11d0b61bc8ef67eaa357:docs/style.css
 
 # begin context for dune-project
 # file dune-project
-5a41e8442074c51d581ce1999b1bde6d:dune-project
+6170f6d4b6baee8469c6585283b593a2:dune-project
 # end context for dune-project
 
 # begin context for opam/ez_search.opam
 # file opam/ez_search.opam
-7eeafe9eb82efad182acee8bb45a0494:opam/ez_search.opam
+9c10c00bc859d89c059bc5f9b927b62f:opam/ez_search.opam
 # end context for opam/ez_search.opam
 
 # begin context for opam/ocp-search.opam
 # file opam/ocp-search.opam
-7f8f38d6cdac411f0a0f3b254b7e3437:opam/ocp-search.opam
+8e1a2579d0eafc4e22069e480bfc3356:opam/ocp-search.opam
 # end context for opam/ocp-search.opam
 
 # begin context for scripts/after.sh
@@ -150,12 +150,12 @@ b0cd838df6108f8c5ae7db6f6ab106bc:sphinx/index.rst
 
 # begin context for sphinx/license.rst
 # file sphinx/license.rst
-8d984cbb854fe94fc5fa77b97b6ee046:sphinx/license.rst
+abc6ae223dbcd2a710665e948f370518:sphinx/license.rst
 # end context for sphinx/license.rst
 
 # begin context for src/ez_search/dune
 # file src/ez_search/dune
-888383ccbbb93e9b18055669f9544ce4:src/ez_search/dune
+daf5a5381f4f1a45c14b48ff91aa5a78:src/ez_search/dune
 # end context for src/ez_search/dune
 
 # begin context for src/ez_search/index.mld
@@ -165,7 +165,7 @@ a2639629a3a439f2fade54bb315d5768:src/ez_search/index.mld
 
 # begin context for src/ez_search/version.mlt
 # file src/ez_search/version.mlt
-c00e8b11b101f7c751890d69c47282b9:src/ez_search/version.mlt
+713eab8d7f536ef962ad82fd7e03fb32:src/ez_search/version.mlt
 # end context for src/ez_search/version.mlt
 
 # begin context for src/ocp-search/dune

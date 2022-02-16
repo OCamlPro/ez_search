@@ -51,9 +51,24 @@ module EzSearch : sig
      in DIRECTORY is considered as a [file_entry] name, and
      [file_name] are relative paths within top-directories.  [select]
      takes a path in argument and returns [true] if the content of the
-     path should be indexed.  *)
+     path should be indexed.
+     WARNING: not reentrant. temporary chdir to the directory.
+ *)
   val index_directory :
     db_dir:string -> ?db_name:string -> select:( string -> bool ) -> string -> unit
+
+  (** [index_files ~db_dir ?db_name f] creates an index on disk in
+     directory [db_dir] with database name [db_name]. [f] is called by
+     [index_files] with a function that should be called for each file
+     to index with arguments [~file_entry ~file_name
+     ~file_content]. *)
+  val index_files :
+    db_dir:string ->
+    ?db_name:string ->
+    ((file_entry:string ->
+      file_name:string -> file_content:string -> unit) ->
+     unit) ->
+    unit
 
   (** [load_db ~db_dir ?db_name ?use_mapfile ()] loads the database in memory.
      [use_mapfile] controls whether to use a memory-mapped file or
@@ -94,6 +109,7 @@ module EzSearch : sig
     ?is_case_sensitive:bool ->
     ?ncores:int -> ?maxn:int ->
     ?find:(pos:int -> len:int -> string -> int) ->
+    ?engine:[ `Re | `Str] ->
     string ->
     int * occurrence list
 

@@ -4,7 +4,10 @@
   (name ez_search)
   (public_name ez_search)
   (wrapped true)
-  (libraries re parmap ez_file ez_cmdliner )
+  (libraries re   ez_file ez_cmdliner     (select useParmap.ml from
+      ( Parmap -> useParmap.yes.ml )
+      ( -> useParmap.no.ml ))
+)
   
     (foreign_stubs (language c) (names mapfile_stubs strstubs strfind)(flags (:standard) -O2 -fPIC -DPIC))
 

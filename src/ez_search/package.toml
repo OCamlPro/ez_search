@@ -49,7 +49,7 @@ gen-version = "version.ml"
 ez_cmdliner = ">=0.2"
 ez_file = ">=0.2"
 re = "1.8.0"
-parmap = "1.2.3"
+parmap = { version = "1.2.3", libname = " " }
 # base-unix = { libname = "str", version = ">=base" }
 
 # package tools dependencies
@@ -59,7 +59,6 @@ parmap = "1.2.3"
 # package fields (depends on package skeleton)
 #Examples:
 #  dune-stanzas = "(preprocess (pps ppx_deriving_encoding))" 
-#  dune-libraries = "bigstring" 
 #  dune-trailer = "(install (..))" 
 #  opam-trailer = "pin-depends: [..]" 
 #  no-opam-test = "yes" 
@@ -68,4 +67,9 @@ parmap = "1.2.3"
 [fields]
 dune-stanzas = """
   (foreign_stubs (language c) (names mapfile_stubs strstubs strfind)(flags (:standard) -O2 -fPIC -DPIC))
+"""
+dune-libraries = """
+    (select useParmap.ml from
+      ( Parmap -> useParmap.yes.ml )
+      ( -> useParmap.no.ml ))
 """
