@@ -10,8 +10,8 @@
 
 (package
  (name ez_search)
- (synopsis "The ez_search project")
- (description "This is the description\nof the ez_search OCaml project\n")
+ (synopsis "The ez_search library")
+ (description "ez_search is a library for indexing files and searching content with rexgexps.\nIt creates a dababase of two files (one with the raw files, one with the \nindex) on disk. \nThe database can then be searched for occurrences of regexps, using\neither [Re] or [Str]. Direct string matching and case insensitive searches \nare also supported.\nEz_search can [mmap] the database to decrease its memory footprint, and\n[Parmap] to search the database on multiple cores in parallel (in which case\nthe results may overlap).\nIt also provides a \"context extraction\" feature to display lines above and \nafter an occurrence.\n")
  (depends
    (ocaml (>= 4.07.0))
    (re (and (>= 1.8.0) (< 2.0.0)))
@@ -27,8 +27,8 @@
 
 (package
  (name ocp-search)
- (synopsis "The ez_search project")
- (description "This is the description\nof the ez_search OCaml project\n")
+ (synopsis "The ocp-search tool to index/search source packages")
+ (description "ocp-search is an index/search tool built as an example on top of \nez_search. It can be used to index OCaml files in a directory containing\nextracted source packages, building a database. The database can then \nbe searched for regexps, displaying occurrences with contexts.\n")
  (depends
    (ocaml (>= 4.07.0))
    (ez_search (= version))

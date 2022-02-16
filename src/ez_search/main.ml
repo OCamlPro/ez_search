@@ -130,7 +130,7 @@ let main () =
   let arg_list = Arg.align  [
 
       "--index", Arg.String (fun dir -> to_index := Some dir),
-      "DIR Index directory";
+      "DIR Index directory. The directory should contain a list of directories, each one containing the sources of the package (the directory name will be used as an 'entry', and all filenames will be relative to this directory inside the package).";
 
       "--count", Arg.Set count_lines,
       " Print number of lines in database";
@@ -167,11 +167,13 @@ let main () =
       " Do not display debug info";
 
       "--build", Arg.Clear sources,
-      " Index/search build files";
+      " Index/search build files (dune and Makefile). By default, ocp-search scans and searches source files.";
 
       "--ncores", Arg.Int ( (:=) ncores ),
       "NCORES Set number of cores to use (auto)";
 
+      "--db-dir", Arg.String (fun s -> db_dir := s),
+      "DIR Directory where the database should be created/found. ~/.opam/ocp-search by default";
     ]
 
   in

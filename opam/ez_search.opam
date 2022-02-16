@@ -4,10 +4,19 @@ opam-version: "2.0"
 name: "ez_search"
 version: "0.2.2"
 license: "LGPL-2.1-only with OCaml-LGPL-linking-exception"
-synopsis: "The ez_search project"
+synopsis: "The ez_search library"
 description: """\
-This is the description
-of the ez_search OCaml project
+ez_search is a library for indexing files and searching content with rexgexps.
+It creates a dababase of two files (one with the raw files, one with the 
+index) on disk. 
+The database can then be searched for occurrences of regexps, using
+either [Re] or [Str]. Direct string matching and case insensitive searches 
+are also supported.
+Ez_search can [mmap] the database to decrease its memory footprint, and
+[Parmap] to search the database on multiple cores in parallel (in which case
+the results may overlap).
+It also provides a "context extraction" feature to display lines above and 
+after an occurrence.
 """
 authors: ["Fabrice Le Fessant <fabrice.le_fessant@origin-labs.com>"]
 maintainer: ["Fabrice Le Fessant <fabrice.le_fessant@origin-labs.com>"]

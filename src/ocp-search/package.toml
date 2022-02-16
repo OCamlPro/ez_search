@@ -7,10 +7,15 @@ skeleton = "driver"
 # version = "0.1.0"
 
 # synopsis if different from project synopsis
-# synopsis = ...
+synopsis = "The ocp-search tool to index/search source packages"
 
 # description if different from project description
-# description = ...
+description = """
+ocp-search is an index/search tool built as an example on top of 
+ez_search. It can be used to index OCaml files in a directory containing
+extracted source packages, building a database. The database can then 
+be searched for regexps, displaying occurrences with contexts.
+"""
 
 # kind is either "library", "program" or "virtual"
 kind = "program"
