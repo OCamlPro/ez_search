@@ -10,9 +10,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open EzFile.OP
 open V1  (* from outside, should be: open Ez_search.V1 *)
 open EzSearch.TYPES
+
+open Ez_file.V1
+open EzFile.OP
 
 let find_term ~db ~is_case_sensitive ~is_regexp
     ~lines ~maxn ~verbose ~engine ~ncores term =

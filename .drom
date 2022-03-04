@@ -5,7 +5,7 @@ version:0.6.0~dev
 
 # hash of toml configuration files
 # used for generation of all files
-ef43c2cba6363d8bcd8424021d9d3660:.
+7610aef52aed3bf4849890991bd2ad11:.
 # end context for .
 
 # begin context for .github/workflows/workflow.yml
@@ -35,7 +35,7 @@ a8d1bcd6f62c6b813b77d3ff8959d8d2:.ocamlformat-ignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-ccccad7d26ae30779f8b590efe82b8f1:CHANGES.md
+a50b9f61b9394a7d145a4d35c7e808c3:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -95,12 +95,12 @@ c8281f46ba9a11d0b61bc8ef67eaa357:docs/style.css
 
 # begin context for dune-project
 # file dune-project
-ee06c6a4862b564002bbdfcb832f8029:dune-project
+b3df7b1a198b5695db6a64c63866bfd1:dune-project
 # end context for dune-project
 
 # begin context for opam/ez_search.opam
 # file opam/ez_search.opam
-aa970e8387009b8879e56a0c9d016be0:opam/ez_search.opam
+2cd1188edd01ff633d784faef4d1712c:opam/ez_search.opam
 # end context for opam/ez_search.opam
 
 # begin context for opam/ocp-search.opam
