@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Ez_file.V1
+
 module Parmap = UseParmap
 
 module EzSearch = struct

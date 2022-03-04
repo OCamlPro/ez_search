@@ -59,7 +59,7 @@ gen-version = "version.ml"
 #   base-unix = { libname = "unix", version = ">=base" } 
 [dependencies]
 ez_cmdliner = ">=0.2"
-ez_file = ">=0.2"
+ez_file = ">=0.3"
 re = "1.8.0"
 parmap = { version = "1.2.3", libname = " " }
 # base-unix = { libname = "str", version = ">=base" }
